@@ -4,7 +4,6 @@
 -- File description:
 -- Parser
 -}
-{-# LANGUAGE InstanceSigs #-}
 
 module Parser (parseChar,
     parseAnyChar,
@@ -47,9 +46,7 @@ instance Alternative Parser where
         either (\_ -> y str) Right (x str)
 
 instance Monad Parser where
-    return :: a -> Parser a
     return = pure
-    (>>=) :: Parser a -> (a -> Parser b) -> Parser b
     (>>=) parser f = Parser $ \str ->
         case runParser parser str of
             Left err -> Left err
@@ -69,7 +66,7 @@ parseAnyChar str = Parser tmp
 parseOr :: Parser a -> Parser a -> Parser a
 parseOr ft ft2 = ft <|> ft2
 
--- a la place du ft <|> ft2 Parser $ \str ->
+-- a la place du ft <|> ft2 => Parser $ \str ->
 --    case runParser ft str of
 --        Right result -> Right result
 --        Left _ -> runParser ft2 str
@@ -84,11 +81,13 @@ parseAnd ft ft2 = Parser $ \str -> case runParser ft str of
 
 
 parseAndWith :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
-parseAndWith ft ft2 ft3 = Parser $ \str -> case runParser ft2 str of
-    Left _ -> Left "none"
-    Right (res, rest) -> case runParser ft3 rest of
-        Left _ -> Left "none"
-        Right (res2, rest2) -> Right (ft res res2, rest2)
+parseAndWith ft ft2 ft3 = ft <$> ft2 <*> ft3
+
+-- a la plce du f <$> ft2 <*> ft3 = Parser $ \str -> case runParser ft2 str of
+-- Left _ -> Left "none"
+-- Right (res, rest) -> case runParser ft3 rest of
+    -- Left _ -> Left "none"
+    -- Right (res2, rest2) -> Right (ft res res2, rest2)
 
 
 parseMany :: Parser a -> Parser [a]
