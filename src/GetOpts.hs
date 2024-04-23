@@ -7,21 +7,17 @@
 
 module GetOpts (getOpts) where
 
-import Configuration (Format(..), Conf, ifile, oformat, ofile, iformat)
+import Configuration (Format(..), Conf(..))
 
 validOpts :: Conf -> Maybe Conf
-validOpts conf | ifile conf == Nothing || oformat conf == Nothing = Nothing
-               | otherwise = Just conf
-
-getFormatInput :: [String] -> Maybe Format
-getFormatInput (('-':ab):xs) = Just ("Markdown")
-getFormatInput (('<':ab):xs) = Just ("XML")
-getFormatInput (('{':ab):xs) = Just ("Json")
+validOpts (Conf Nothing _ _ _) = Nothing
+validOpts (Conf _ Nothing _ _) = Nothing
+validOpts conf = Just conf
 
 getFormat :: String -> Maybe Format
 getFormat "xml" = Just XML
 getFormat "json" = Just JSON
-getFormat "markdown" = Just MARKDOWN
+getFormat "markdown" = Just MD
 getFormat _ = Nothing
 
 getOpts :: Conf -> [String] -> Maybe Conf

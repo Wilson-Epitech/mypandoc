@@ -29,7 +29,13 @@ library
       GetOpts
       InvalidArguments
       MyPandoc
+      ParseJSONtoMD
+      ParseJSONtoXML
+      ParseMDtoJSON
+      ParseMDtoXML
       Parser
+      ParseXMLtoJSON
+      ParseXMLtoMD
   other-modules:
       Paths_mypandoc
   autogen-modules:

@@ -5,9 +5,9 @@
 -- Configuration
 --}
 
-module Configuration (Format(..), Conf, ifile, oformat, ofile, iformat, defaultConf) where
+module Configuration (Format(..), Conf(..), defaultConf) where
 
-data Format = XML | JSON | MARKDOWN deriving (Eq, Show)
+data Format = XML | JSON | MD deriving (Eq, Show)
 
 data Conf = Conf
     {
