@@ -7,6 +7,12 @@
 
 module ParseXMLtoMD (parseXMLtoMD) where
 
--- parseXMLtoMD --
+-- parseDocument -- File --
+parseDocument :: [String] -> [String]
+parseDocument file = file
+
+-- parseXMLtoMD -- File --
 parseXMLtoMD :: [String] -> [String]
-parseXMLtoMD file = file
+parseXMLtoMD file@("<document>" : _) | last file /= "</document>" = []
+                                     | otherwise = parseDocument (tail (init file))
+parseXMLtoMD _ = []
