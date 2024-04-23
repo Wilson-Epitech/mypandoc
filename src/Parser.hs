@@ -52,6 +52,25 @@ instance Monad Parser where
             Left err -> Left err
             Right (res, rest) -> runParser (f res) rest
 
+-- type Parser a = String -> Maybe (a, String)
+
+-- parseChar :: Char -> Parser Char
+-- parseChar c (x:xs)
+--     | x == c = Just (c, xs)
+--     | otherwise = Nothing
+-- parseChar _ _ = Nothing
+
+-- parseAnyChar :: String -> Parser Char
+-- parseAnyChar rest (x:xs)
+--     | x `elem` rest = Just (x, xs)
+--     | otherwise = Nothing
+-- parseAnyChar _ _ = Nothing
+
+-- parseOr :: Parser a -> Parser a -> Parser a
+-- parseOr parse1 parse2 char = case parse1 char of
+--     Just (res, rest) -> Just (res, rest)
+--     Nothing -> parse2 char
+
 parseChar :: Char -> Parser Char
 parseChar c = Parser (\ (x:xs) -> if c == x then Right (c, xs) else Left xs)
 
