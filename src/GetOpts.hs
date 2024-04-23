@@ -13,6 +13,11 @@ validOpts :: Conf -> Maybe Conf
 validOpts conf | ifile conf == Nothing || oformat conf == Nothing = Nothing
                | otherwise = Just conf
 
+getFormatInput :: [String] -> Maybe Format
+getFormatInput (('-':ab):xs) = Just ("Markdown")
+getFormatInput (('<':ab):xs) = Just ("XML")
+getFormatInput (('{':ab):xs) = Just ("Json")
+
 getFormat :: String -> Maybe Format
 getFormat "xml" = Just XML
 getFormat "json" = Just JSON
