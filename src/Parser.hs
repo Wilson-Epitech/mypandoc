@@ -20,8 +20,8 @@ module Parser (parseChar,
 
 import Control.Applicative (Alternative (empty), (<|>))
 
-data Parser a = Parser {
-    runParser :: String -> Either String (a , String)
+newtype Parser a = Parser {
+    runParser :: String -> Either String (a, String)
 }
 
 instance Functor Parser where
@@ -51,25 +51,6 @@ instance Monad Parser where
         case runParser parser str of
             Left err -> Left err
             Right (res, rest) -> runParser (f res) rest
-
--- type Parser a = String -> Maybe (a, String)
-
--- parseChar :: Char -> Parser Char
--- parseChar c (x:xs)
---     | x == c = Just (c, xs)
---     | otherwise = Nothing
--- parseChar _ _ = Nothing
-
--- parseAnyChar :: String -> Parser Char
--- parseAnyChar rest (x:xs)
---     | x `elem` rest = Just (x, xs)
---     | otherwise = Nothing
--- parseAnyChar _ _ = Nothing
-
--- parseOr :: Parser a -> Parser a -> Parser a
--- parseOr parse1 parse2 char = case parse1 char of
---     Just (res, rest) -> Just (res, rest)
---     Nothing -> parse2 char
 
 parseChar :: Char -> Parser Char
 parseChar c = Parser (\ (x:xs) -> if c == x then Right (c, xs) else Left xs)
@@ -145,3 +126,17 @@ parseTuple ft = Parser $ \str -> case str of
         Left _ -> Left "none"
         _ -> Left "none"
     _ -> Left "none"
+
+clearString :: String -> String
+clearString [] = []
+clearString (':':xs) = clearString xs
+clearString ('=':xs) = clearString xs
+clearString (' ':xs) = clearString xs
+clearString str = str
+
+parseString :: String -> String -> Maybe String
+parseString [] str = Just (clearString str)
+parseString _ [] = Nothing
+parseString (x:xs) (y:ys)
+    | x == y = parseString xs ys
+    | otherwise = parseString (x:xs) ys
