@@ -17,6 +17,8 @@ module Parser (parseChar,
     parseTuple,
     runParser,
     clearTab,
+    parseString,
+    prsString,
     Parser) where
 
 import Control.Applicative (Alternative (empty), (<|>))
@@ -142,8 +144,15 @@ parseString (x:xs) (y:ys)
     | x == y = parseString xs ys
     | otherwise = parseString (x:xs) ys
 
+prsString :: String -> String -> Parser String
+prsString [] str = pure str
+prsString _ [] = empty
+prsString (x:xs) (y:ys)
+    | x == y    = prsString xs ys
+    | otherwise = empty
+
 clearTab :: [String] -> [String]
-clearTab (('\t':ys):xs) = clearTab ((ys):xs)
-clearTab ((' ':ys):xs) = clearTab ((ys):xs)
+clearTab (('\t':ys):xs) = clearTab (ys:xs)
+clearTab ((' ':ys):xs) = clearTab (ys:xs)
 clearTab (str:xs) = str:clearTab xs
 clearTab [] = []

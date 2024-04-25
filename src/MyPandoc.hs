@@ -18,6 +18,7 @@ import ParseMDtoJSON (parseMDtoJSON)
 import ParseMDtoXML (parseMDtoXML)
 import ParseXMLtoJSON (parseXMLtoJSON)
 import ParseXMLtoMD (parseXMLtoMD)
+import Parser (clearTab)
 
 -- Lines --
 getFormatInput :: [String] -> Maybe Format
@@ -34,12 +35,15 @@ printLines _ _ = exitWith (ExitFailure 84)
 
 -- runPandoc -- Conf -- Lines --
 runPandoc :: Conf -> [String] -> [String]
+runPandoc (Conf _ (Just XML) _ (Just XML)) file = file
+runPandoc (Conf _ (Just MD) _ (Just MD)) file = file
+runPandoc (Conf _ (Just JSON) _ (Just JSON)) file = file
 runPandoc (Conf _ (Just XML) _ (Just JSON)) file = parseJSONtoXML file
 runPandoc (Conf _ (Just XML) _ (Just MD)) file = parseMDtoXML file
 runPandoc (Conf _ (Just JSON) _ (Just XML)) file = parseXMLtoJSON file
 runPandoc (Conf _ (Just JSON) _ (Just MD)) file = parseMDtoJSON file
 runPandoc (Conf _ (Just MD) _ (Just XML)) file = parseXMLtoMD file
-runPandoc (Conf _ (Just MD) _ (Just JSON)) file = parseJSONtoMD file
+runPandoc (Conf _ (Just MD) _ (Just JSON)) file = parseJSONtoMD (clearTab file)
 runPandoc _ _ = []
 
 -- getInputConf -- Conf -- Lines --
