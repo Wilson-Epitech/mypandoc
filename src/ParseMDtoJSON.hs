@@ -16,6 +16,16 @@ isInTab :: [String] -> Char -> Bool
 isInTab linesList charToFind =
     any (\line -> not (null line) && elem charToFind line) linesList
 
+fillUntilFound :: [String] -> String -> [String]
+fillUntilFound [] _ = []
+fillUntilFound (x:xs) search | x == search = []
+                              | otherwise = x : fillUntilFound xs search
+
+skipUntilFound :: [String] -> String -> [String]
+skipUntilFound [] _ = []
+skipUntilFound (x:xs) search | x == search = xs
+                              | otherwise = skipUntilFound xs search
+
 getByChar :: [String] -> Char -> String
 getByChar linesList charToFind =
     case find (\line -> not (null line) && head line == charToFind) linesList of
