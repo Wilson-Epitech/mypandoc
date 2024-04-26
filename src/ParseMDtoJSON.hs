@@ -9,6 +9,29 @@ module ParseMDtoJSON (parseMDtoJSON) where
 import Data.Maybe (catMaybes)
 import Data.List (isInfixOf, isPrefixOf, find)
 
+-- word array
+
+splitListOnSubstring :: String -> [String] -> [String]
+splitListOnSubstring _ [] = []
+splitListOnSubstring subStr (x:xs)
+    | isInfixOf subStr x =
+        let (before, after) = breakSubstring subStr x
+            rest = drop (length subStr) after
+        in before : if null rest then filteredResult else rest : filteredResult
+    | otherwise = x : filteredResult
+  where
+    filteredResult = filter (not . null) (splitListOnSubstring subStr xs)
+
+breakSubstring :: String -> String -> (String, String)
+breakSubstring _ [] = ("", "")
+breakSubstring subStr str = go [] str
+  where
+    go acc [] = (reverse acc, "")
+    go acc s@(x:xs)
+        | subStr `isPrefixOf` s = (reverse acc, s)
+        | otherwise = go (x:acc) xs
+
+ -- end word_arry
 
 --- lil functions ---
 
