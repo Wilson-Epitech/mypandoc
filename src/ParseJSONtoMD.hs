@@ -10,7 +10,9 @@ import Parser (parseString)
 
 cleanString :: String -> String
 cleanString [] = []
-cleanString str = init (tail str)
+cleanString (x:xs)
+    | x == '\"' = init xs
+    | otherwise = x:xs
 
 isNeedClear :: String -> Bool
 isNeedClear [] = False
@@ -29,7 +31,7 @@ getAuthor str = "author: " ++ init (cleanString str)
 
 --getDate--
 getDate :: String -> String
-getDate str = "date: " ++ init (cleanString str)
+getDate str = "date: " ++ cleanString str
 
 --parseJsonHeaderToMDHeader--
 parseJsonHeaderToMDHeader :: [String] -> [String]
@@ -95,6 +97,14 @@ parseList ("],": xs) = parseList xs
 parseList ("[":x:xs) = ("- " ++ tail x):parseList xs
 parseList _ = [""]
 
+--parseTheString--
+parseTheString :: String -> String -> Maybe String
+parseTheString [] str = Just str
+parseTheString _ [] = Nothing
+parseTheString (x:xs) (y:ys)
+    | x == y = parseTheString xs ys
+    | otherwise = parseTheString (x:xs) ys
+
 --checkOtherArray--
 checkOtherArray :: Int -> [String] -> [String]
 checkOtherArray i [] = parseArray i []
@@ -102,7 +112,7 @@ checkOtherArray i (x:xs) = case parseString "\"link\"" x of
     Just _ -> "|":getLink xs "" "" False:parseArray i (goToNextScope xs)
     Nothing -> case parseString "\"image\"" x of
         Just _ -> "|":getLink xs "" "" True: parseArray i (goToNextScope xs)
-        Nothing -> case parseString "\"" x of
+        Nothing -> case parseTheString "\"" x of
             Just res -> "|":init res:parseArray i xs
             Nothing -> parseArray i xs
 

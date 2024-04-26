@@ -38,7 +38,7 @@ runPandoc :: Conf -> [String] -> [String]
 runPandoc (Conf _ (Just XML) _ (Just XML)) file = file
 runPandoc (Conf _ (Just MD) _ (Just MD)) file = file
 runPandoc (Conf _ (Just JSON) _ (Just JSON)) file = file
-runPandoc (Conf _ (Just XML) _ (Just JSON)) file = parseJSONtoXML file
+runPandoc (Conf _ (Just XML) _ (Just JSON)) file = parseJSONtoXML (clearTab file)
 runPandoc (Conf _ (Just XML) _ (Just MD)) file = parseMDtoXML file
 runPandoc (Conf _ (Just JSON) _ (Just XML)) file = parseXMLtoJSON file
 runPandoc (Conf _ (Just JSON) _ (Just MD)) file = parseMDtoJSON file
@@ -48,7 +48,7 @@ runPandoc _ _ = []
 
 -- getInputConf -- Conf -- Lines --
 getInputConf :: Conf -> [String] -> Conf
-getInputConf (Conf a b c Nothing) file = (Conf a b c (getFormatInput file))
+getInputConf (Conf a b c Nothing) file = Conf a b c (getFormatInput file)
 getInputConf conf _ = conf
 
 -- Configuration --
