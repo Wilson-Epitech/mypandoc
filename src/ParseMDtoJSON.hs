@@ -42,6 +42,30 @@ getWordBySearch search x =
 
 --- PArseMdtoJson ---
 
+subGetuntilSec :: [String] -> [String]
+subGetuntilSec file = skipUntilFound file (getByChar file '\n')
+
+
+getHeaderPart :: [String] -> [String]
+getHeaderPart parse = fillUntilFound parse (getByChar parse '-')
+
+
+noSection :: [String] -> [String]
+noSection postHead = skipUntilFound postHead (getByChar postHead '\n')
+
+getUntilSection :: [String] -> [String]
+getUntilSection postHead =
+    fillUntilFound (subGetuntilSec postHead) (getByChar postHead '#')
+
+--- COREEE ---
+
+headerPart :: [String] -> [String]
+headerPart file =
+        if isInTab file '#' then
+            parseHeaderMd (getHeaderPart file) (getUntilSection file)
+        else
+            parseHeaderMd (getHeaderPart file) (noSection file)
+
 toTab :: [String] -> [String]
 toTab file = finalOutput (headerPart file) file
 
