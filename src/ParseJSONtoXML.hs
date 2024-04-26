@@ -11,9 +11,8 @@ import Parser (parseString)
 
 cleanString :: String -> String
 cleanString [] = []
-cleanString (x:xs)
-    | x == '\"' = init xs
-    | otherwise = xs
+cleanString ('\"':xs) = init xs
+cleanString str = str
 
 isNeedClear :: String -> Bool
 isNeedClear [] = False
@@ -52,8 +51,12 @@ parseJsonHeaderToXMLHeader [] = ["</header>"]
 parseCodeBlock :: [String] -> [String] -> [String]
 parseCodeBlock ("]":_) tmp = mappend tmp ["</codeblock>", ""]
 parseCodeBlock ("],":xs) tmp = parseCodeBlock xs tmp
-parseCodeBlock ("[":x:xs) [] = parseCodeBlock xs ("<codeblock>":["<paragraph>" ++ cleanString x ++ "</paragraph>"])
-parseCodeBlock ("[":x:xs) tmp = parseCodeBlock xs (("<paragraph>" ++ cleanString x ++ "</paragraph>"):tmp)
+parseCodeBlock ("[":x:xs) [] = 
+    parseCodeBlock xs 
+    ("<codeblock>":["<paragraph>" ++ cleanString x ++ "</paragraph>"])
+parseCodeBlock ("[":x:xs) tmp =
+    parseCodeBlock xs 
+    (("<paragraph>" ++ cleanString x ++ "</paragraph>"):tmp)
 parseCodeBlock _  _ = ["</codeblock>"]
 
 
@@ -103,13 +106,16 @@ parseList _ = [""]
 --checkOtherArray--
 checkOtherArray :: Int -> [String] -> [String]
 checkOtherArray i [] = parseArray i []
-checkOtherArray i (x:xs) = case parseString "\"link\"" x of
-    Just _ -> "|":getLink xs "" "" False:parseArray i (goToNextScope xs)
-    Nothing -> case parseString "\"image\"" x of
-        Just _ -> "|":getLink xs "" "" True: parseArray i (goToNextScope xs)
-        Nothing -> case parseTheString "\"" x of
-            Just res -> "|":init res:parseArray i xs
-            Nothing -> parseArray i xs
+checkOtherArray i (x:xs) = case parseString "\"code\"" x of
+    Just res ->
+            "|":("<code>" ++ cleanString res ++ "</code>"):parseArray i xs
+    Nothing -> case parseString "\"link\"" x of
+        Just _ -> "|":getLink xs "" "" False:parseArray i (goToNextScope xs)
+        Nothing -> case parseString "\"image\"" x of
+            Just _ -> "|":getLink xs "" "" True:parseArray i (goToNextScope xs)
+            Nothing -> case parseTheString "\"" x of
+                Just res -> "|":init res:parseArray i xs
+                Nothing -> parseArray i xs
 
 checkForStr :: String -> String
 checkForStr str
@@ -127,10 +133,10 @@ parseTheString (x:xs) (y:ys)
 --parseArray--
 parseArray :: Int -> [String] -> [String]
 parseArray _ [] = ["</body>"]
-parseArray i ("[":x:xs) = ("<paragraph>" ++ checkForStr (cleanString x)):parseArray i xs
-parseArray i ("]":"}":xs)
-    | i > 0 =  "</section>":parseArray (i - 1) xs
-    | i == 0 = parseArray 0 xs
+parseArray i ("[":x:xs) =
+    ("<paragraph>" ++ checkForStr (cleanString x)):parseArray i xs
+parseArray 0 ("]":"}":xs) = parseArray 0 xs
+parseArray i ("]":"}":xs) = "</section>":parseArray (i - 1) xs
 parseArray i ("],":xs) = "|":"</paragraph>":parseArray i xs
 parseArray i ("]":xs) = "|":"</paragraph>":parseArray i xs
 parseArray i ("{":xs) = parseArray i xs
@@ -138,16 +144,18 @@ parseArray i ("},":xs) = parseArray i xs
 parseArray i ("\"codeblock\": [":xs) =
     mappend (parseCodeBlock xs []) (parseArray i (takeOffCodeBlock xs))
 parseArray i ("\"list\": [":xs) =
-    mappend (mappend ("<list>":parseList xs) ["</list>"]) (parseArray i (takeOffCodeBlock xs))
+    mappend (mappend ("<list>":parseList xs)
+    ["</list>"]) (parseArray i (takeOffCodeBlock xs))
 parseArray i (x:xs) = case parseString "\"section\": {" x of
     Just _ -> "":parseSection (i + 1) xs
     Nothing -> case parseString "\"bold\": " x of
-        Just res -> "|":("<bold>" ++ cleanString res ++ "</bold>"):parseArray i xs
+        Just res -> 
+            "|":("<bold>" ++ cleanString res ++ "</bold>"):parseArray i xs
         Nothing -> case parseString "\"italic\": " x of
-            Just res -> "|":("<italic>" ++ cleanString res ++ "</italic>"):parseArray i xs
-            Nothing -> case parseString "\"code\"" x of
-                Just res -> "|":("<code>" ++ cleanString res ++ "</code>"):parseArray i xs
-                Nothing -> checkOtherArray i (x:xs)
+            Just res -> 
+                "|":("<italic>" ++ cleanString res ++ "</italic>"):
+                parseArray i xs
+            Nothing -> checkOtherArray i (x:xs)
 
 --parseSection--
 parseSection :: Int -> [String] -> [String]
@@ -162,7 +170,8 @@ parseSection _ [] = []
 
 --parseJsonBodyToXMLBody--
 parseJsonBodyToXMLBody :: [String] -> [String]
-parseJsonBodyToXMLBody ("[":x:xs) = ("<paragraph>" ++ cleanString x):parseArray 0 xs
+parseJsonBodyToXMLBody ("[":x:xs) = 
+    ("<paragraph>" ++ cleanString x):parseArray 0 xs
 parseJsonBodyToXMLBody (x:xs) = case parseString "\"section\"" x of
     Just _ -> parseSection 0 xs
     Nothing -> case parseString "[" x of
@@ -189,5 +198,6 @@ upgradeTab (x:xs) = if isNeedClear x
 
 -- parseJSONtoXML --
 parseJSONtoXML :: [String] -> [String]
-parseJSONtoXML ("{":x:xs) = "<document>":appendToLast (upgradeTab (parseJson (x:xs)))
+parseJSONtoXML ("{":x:xs) = "<document>":appendToLast 
+    (upgradeTab (parseJson (x:xs)))
 parseJSONtoXML _ = []

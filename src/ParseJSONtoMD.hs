@@ -10,9 +10,8 @@ import Parser (parseString)
 
 cleanString :: String -> String
 cleanString [] = []
-cleanString (x:xs)
-    | x == '\"' = init xs
-    | otherwise = x:xs
+cleanString ('\"':xs) = init xs
+cleanString str = str
 
 isNeedClear :: String -> Bool
 isNeedClear [] = False
