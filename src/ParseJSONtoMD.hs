@@ -5,7 +5,14 @@
 -- ParseXMLtoMD
 --}
 
-module ParseJSONtoMD (parseJSONtoMD) where
+module ParseJSONtoMD (parseJSONtoMD,
+    cleanString,
+    isNeedClear,
+    getTitle,
+    getAuthor,
+    getDate,
+    parseJsonHeaderToMDHeader,
+    parseCodeBlock) where
 import Parser (parseString)
 
 cleanString :: String -> String
@@ -153,9 +160,10 @@ parseSection _ [] = []
 
 --parseJsonBodyToMDBody--
 parseJsonBodyToMDBody :: [String] -> [String]
+parseJsonBodyToMDBody ("{":xs) = parseJsonBodyToMDBody xs
 parseJsonBodyToMDBody ("[":x:xs) = cleanString x:parseArray 0 xs
 parseJsonBodyToMDBody (x:xs) = case parseString "\"section\""x of
-    Just _ -> parseSection 0 xs
+    Just _ -> parseSection 1 xs
     Nothing -> case parseString "[" x of
         Just _ -> x:parseArray 0 xs
         Nothing -> []

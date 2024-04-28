@@ -24,7 +24,7 @@ isNeedClear (_:xs) = isNeedClear xs
 
 --getTitle--
 getTitle :: String -> String
-getTitle str = "title= " ++ init str ++ ">"
+getTitle str = "title=" ++ init str ++ ">"
 
 --getAuthor--
 getAuthor :: String -> String
