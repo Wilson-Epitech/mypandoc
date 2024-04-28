@@ -11,6 +11,12 @@ import Data.List (isPrefixOf, intercalate)
 import Data.Char (isAlpha)
 import Data.Maybe (fromMaybe)
 
+clearStr :: Char -> String -> String
+clearStr _ [] = []
+clearStr c (x:xs)
+    | c == x = clearStr c xs
+    | otherwise = x : clearStr c xs
+
 countChar :: Char -> String -> Int
 countChar _ [] = 0
 countChar c (x:xs)
@@ -32,6 +38,16 @@ parseString substr str
     | substr `isPrefixOf` str = Just (clearString (drop (length substr) str))
     | otherwise = Nothing
 
+otherBalise :: [String] -> String
+otherBalise [] = ""
+otherBalise xs = intercalate " " $ map f xs
+    where f x
+            | "**" `isPrefixOf` x = "<bold>" ++ clearStr '*' x ++ "</bold>"
+            | "*" `isPrefixOf` x = "<italic>" ++ clearStr '*' x ++ "</italic>"
+            | "`" `isPrefixOf` x = "<code>" ++ clearStr '`' x ++ "</code>"
+            | otherwise = x
+
+
 writeCodeBlock :: Int -> [String] -> [String]
 writeCodeBlock 0 xs = "<codeblock>" : parseBody 1 xs
 writeCodeBlock 1 xs = "</codeblock>" : parseBody 0 xs
@@ -50,6 +66,12 @@ handleList 0 x xs = "<list>" : ("<paragraph>" ++ fromMaybe ""
 handleList count x xs = ("<paragraph>" ++ fromMaybe "" 
     (parseString "-" x) ++ "</paragraph>") : parseBody (count + 1) xs
 
+isParagraph :: String -> Int
+isParagraph [] = 0
+isParagraph (x:_)
+    | isAlpha x = 1
+    | otherwise = 0
+
 parseBody :: Int -> [String] -> [String]
 parseBody _ [] = []
 parseBody count (x:xs)
@@ -58,6 +80,8 @@ parseBody count (x:xs)
     | "#" `isPrefixOf` x = parseSection (countChar '#' x)
         ("title=\"" ++ fromMaybe "" (parseString "#" x) ++ "\">") xs
     | count > 0 = ("</list>" ++ x) : parseBody 0 xs
+    | isParagraph x == 1 = ("<paragraph>" ++ otherBalise
+        (words x) ++ "</paragraph>") : parseBody count xs
     | otherwise = x : parseHeader count xs
 
 writeHeader :: Int -> [String] -> [String]
