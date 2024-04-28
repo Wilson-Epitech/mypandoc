@@ -88,7 +88,6 @@ getLink (x:xs) url content b = if url /= "" && content /= ""
         Nothing -> case parseString "\"alt\": [" x of
             Just _ -> getLink xs url (getNewIndex xs) b
             Nothing -> getLink xs url content b
-        --getLink xs url content fait le en pattern matching ptn
 
 --goToNextScope--
 goToNextScope :: [String] -> [String]

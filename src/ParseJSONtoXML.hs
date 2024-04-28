@@ -34,7 +34,6 @@ getAuthor str = "<author>" ++ init (cleanString str) ++ "</author>"
 getDate :: String -> String
 getDate str = "<date>" ++ cleanString str ++ "</date>"
 
-
 --parseJsonHeaderToXMLHeader--
 parseJsonHeaderToXMLHeader :: [String] -> [String]
 parseJsonHeaderToXMLHeader ("},":xs) = "</header>":parseJson xs
