@@ -15,7 +15,10 @@ module ParseJSONtoMD (parseJSONtoMD,
     parseCodeBlock,
     takeOffCodeBlock,
     getFirstIndex,
-    getLink) where
+    getLink,
+    goToNextScope,
+    parseList,
+    appendToLast) where
 import Parser (parseString, revList)
 
 cleanString :: String -> String

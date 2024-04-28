@@ -5,7 +5,8 @@
 -- mypandoc test proj
 --}
 
-import Test.HUnit (Test (TestList, TestCase), assertEqual, runTestTT, Assertable (assert))
+import Test.HUnit
+
 import ParseJSONtoMD (cleanString,
     isNeedClear,
     getTitle,
@@ -15,7 +16,10 @@ import ParseJSONtoMD (cleanString,
     parseCodeBlock,
     takeOffCodeBlock,
     getFirstIndex,
-    getLink)
+    getLink,
+    goToNextScope,
+    parseList,
+    appendToLast)
 
 unitsTests :: Test
 
@@ -30,7 +34,10 @@ unitsTests = TestList [
     testtakeOffCodeBlock,
     testgetFirstIndex,
     testgetLink,
-    testgetLinkIMG
+    testgetLinkIMG,
+    testgoToNextScope,
+    testparseList,
+    testappendToLast
     ]
 
 testCleanStr :: Test
@@ -91,6 +98,21 @@ testgetLinkIMG :: Test
 testgetLinkIMG = TestCase $ do
     let res = getLink ["\"url\": \"test.com\",", "\"alt\": [", "\"oui\""] "" "" True
     assertEqual "getLink failed" "![oui](test.com)" res
+
+testgoToNextScope :: Test
+testgoToNextScope = TestCase $ do
+    let res = goToNextScope ["debut", "fun", "}", "ouais ouais", "le monde est méchant"]
+    assertEqual "gotToNextScope failed" ["ouais ouais", "le monde est méchant"] res
+
+testparseList :: Test
+testparseList = TestCase $ do
+    let res = parseList ["[", "\"item 1\"", "],", "[", "\"item 2\"", "]"]
+    assertEqual "parseList failed" ["- item 1\"", "- item 2\"", ""] res
+
+testappendToLast :: Test
+testappendToLast = TestCase $ do
+    let res = appendToLast ["pandoc", "|", " est", "|", " si", "|", " mal", "|" ," foutu"]
+    assertEqual "appendToList failed" ["pandoc est si mal foutu"] res
 
 main :: IO ()
 main = do
