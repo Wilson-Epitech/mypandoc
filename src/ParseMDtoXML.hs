@@ -82,6 +82,7 @@ parseBody count (x:xs)
     | count > 0 = ("</list>" ++ x) : parseBody 0 xs
     | isParagraph x == 1 = ("<paragraph>" ++ otherBalise
         (words x) ++ "</paragraph>") : parseBody count xs
+    | null x = parseBody count xs
     | otherwise = x : parseHeader count xs
 
 writeHeader :: Int -> [String] -> [String]
