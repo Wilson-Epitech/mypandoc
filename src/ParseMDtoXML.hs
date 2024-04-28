@@ -55,7 +55,7 @@ writeCodeBlock _ xs = xs
 
 parseSection :: Int -> String -> [String] -> [String]
 parseSection _ _ [] = []
-parseSection count str (x:xs)
+parseSection count str (_:xs)
     | count > 0 = (tabs ++ "<section " ++ str) : parseBody 0 xs 
     | otherwise = parseBody 0 xs
     where tabs = replicate (count * 4) ' '

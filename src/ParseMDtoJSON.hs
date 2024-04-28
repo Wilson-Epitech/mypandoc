@@ -45,7 +45,7 @@ getWordBySearch search x =
 isInString :: String -> String -> Bool
 isInString _ [] = True
 isInString [] _ = False
-isInString str@(x:xs) subStr    | isPrefix subStr str = True
+isInString str@(_:xs) subStr    | isPrefix subStr str = True
                                 | otherwise = isInString xs subStr
 
 isPrefix :: String -> String -> Bool
