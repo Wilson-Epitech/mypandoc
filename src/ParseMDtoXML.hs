@@ -31,10 +31,18 @@ writeCodeBlock 0 xs = "<codeblock>" : parseBody 1 xs
 writeCodeBlock 1 xs = "</codeblock>" : parseBody 0 xs
 writeCodeBlock _ xs = xs
 
+handleList :: Int -> String -> [String] -> [String]
+handleList 0 x xs = "<list>" : ("<paragraph>" ++ fromMaybe ""
+    (parseString "-" x) ++ "</paragraph>") : parseBody 1 xs
+handleList count x xs = ("<paragraph>" ++ fromMaybe "" 
+    (parseString "-" x) ++ "</paragraph>") : parseBody (count + 1) xs
+
 parseBody :: Int -> [String] -> [String]
 parseBody _ [] = []
 parseBody count (x:xs)
     | "```" `isPrefixOf` x = writeCodeBlock count xs
+    | "-" `isPrefixOf` x = handleList count x xs
+    | count > 0 = ("</list>" ++ x) : parseBody 0 xs
     | otherwise = x : parseHeader count xs
 
 writeHeader :: Int -> [String] -> [String]
