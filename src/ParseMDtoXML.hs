@@ -26,6 +26,17 @@ parseString substr str
     | substr `isPrefixOf` str = Just (clearString (drop (length substr) str))
     | otherwise = Nothing
 
+writeCodeBlock :: Int -> [String] -> [String]
+writeCodeBlock 0 xs = "<codeblock>" : parseBody 1 xs
+writeCodeBlock 1 xs = "</codeblock>" : parseBody 0 xs
+writeCodeBlock _ xs = xs
+
+parseBody :: Int -> [String] -> [String]
+parseBody _ [] = []
+parseBody count (x:xs)
+    | "```" `isPrefixOf` x = writeCodeBlock count xs
+    | otherwise = x : parseHeader count xs
+
 writeHeader :: Int -> [String] -> [String]
 writeHeader 0 xs = parseHeader 1 xs
 writeHeader 1 xs = ("    </header>" ++ "\n    <body>") : parseHeader 0 xs
@@ -48,6 +59,7 @@ parseDocument :: [String] -> [String]
 parseDocument [] = []
 parseDocument (x:xs) 
     | "---" `isPrefixOf` x = parseHeader 0 (x:xs)
+    | otherwise = parseBody 0 (x:xs)
 
 parseMDtoXML :: [String] -> [String]
 parseMDtoXML file = "<document>" : parseDocument file ++ ["    </body>"] ++ ["</document>"]
