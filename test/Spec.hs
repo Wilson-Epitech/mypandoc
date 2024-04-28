@@ -6,9 +6,13 @@
 --}
 
 import Test.HUnit (Test (TestList, TestCase), assertEqual, runTestTT)
-import MyPandoc
-import ParseJSONtoMD (cleanString, isNeedClear, getTitle, getAuthor, getDate,
-    parseJsonHeaderToMDHeader)
+import ParseJSONtoMD (cleanString,
+    isNeedClear,
+    getTitle,
+    getAuthor,
+    getDate,
+    parseJsonHeaderToMDHeader
+    )
 
 unitsTests :: Test
 
@@ -17,7 +21,8 @@ unitsTests = TestList [
     testisNeedClear,
     testgetTitle,
     testgetDate,
-    testgetAuthor
+    testgetAuthor,
+    testJsonHeader
     ]
 
 testCleanStr :: Test
@@ -51,12 +56,8 @@ testgetDate = TestCase $ do
 
 testJsonHeader :: Test
 testJsonHeader = TestCase $ do
-    let res = parseJsonHeaderToMDHeader ["\"title\": \"Syntaxe JSON\"", "\"author\": \"Edward Lalande\"","\"date\": \"17-10-2023\""]
-    assertEqual "parseJsonHeaderToMDHeader is not good" ["---", "title: Syntaxe JSON", "author: Edward Lalande", "date: 17-10-2023"] res
-
-testparseCodeBlock :: Test
-testparseCodeBlock = TestCase $ do
-    let res = parseCodeBlock
+    let res = parseJsonHeaderToMDHeader ["\"title\": \"Syntaxe JSON\",", "\"author\": \"Edward Lalande\",","\"date\": \"17-10-2023\""]
+    assertEqual "parseJsonHeaderToMDHeader is not good" ["title: Syntaxe JSON", "author: Edward Lalande", "date: 17-10-2023", "---"] res
 
 main :: IO ()
 main = do
