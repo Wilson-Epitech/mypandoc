@@ -48,13 +48,14 @@ parseJsonHeaderToXMLHeader [] = ["</header>"]
 
 --parseCodeBlock--
 parseCodeBlock :: [String] -> [String] -> [String]
-parseCodeBlock ("]":_) tmp = "<codeblock>":mappend (revList tmp) ["</codeblock>", ""]
+parseCodeBlock ("]":_) tmp =
+    "<codeblock>":mappend (revList tmp) ["</codeblock>", ""]
 parseCodeBlock ("],":xs) tmp = parseCodeBlock xs tmp
-parseCodeBlock ("[":x:xs) [] = 
-    parseCodeBlock xs 
+parseCodeBlock ("[":x:xs) [] =
+    parseCodeBlock xs
     ["<paragraph>" ++ cleanString x ++ "</paragraph>"]
 parseCodeBlock ("[":x:xs) tmp =
-    parseCodeBlock xs 
+    parseCodeBlock xs
     (("<paragraph>" ++ cleanString x ++ "</paragraph>"):tmp)
 parseCodeBlock _  _ = ["</codeblock>"]
 

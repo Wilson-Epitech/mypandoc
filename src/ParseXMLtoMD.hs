@@ -14,5 +14,5 @@ parseDocument file = file
 -- parseXMLtoMD -- File --
 parseXMLtoMD :: [String] -> [String]
 parseXMLtoMD file@("<document>" : _) | last file /= "</document>" = []
-                                     | otherwise = parseDocument (tail (init file))
+                                | otherwise = parseDocument (tail (init file))
 parseXMLtoMD _ = []

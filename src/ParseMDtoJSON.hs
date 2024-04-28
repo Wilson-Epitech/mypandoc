@@ -9,7 +9,6 @@ module ParseMDtoJSON (parseMDtoJSON) where
 import Data.Maybe (catMaybes)
 import Data.List (isInfixOf, isPrefixOf, find)
 
-
 --- lil functions ---
 
 isInTab :: [String] -> Char -> Bool
@@ -32,26 +31,43 @@ getByChar linesList charToFind =
         Just line -> line
         Nothing -> ""
 
+getLineWithout :: String -> Char -> String
+getLineWithout "" _ = ""
+getLineWithout (x:xs) token | x == token = xs
+                            | otherwise = getLineWithout xs token
+
 getWordBySearch :: String -> [String] -> Maybe String
 getWordBySearch search x =
     case filter (isPrefixOf (search ++ ":")) x of
         [] -> Nothing
         (line:_) -> Just $ dropWhile (== ' ') (drop (length search + 1) line)
 
+isInString :: String -> String -> Bool
+isInString _ [] = True
+isInString [] _ = False
+isInString str@(x:xs) subStr    | isPrefix subStr str = True
+                                | otherwise = isInString xs subStr
+
+isPrefix :: String -> String -> Bool
+isPrefix [] _ = True
+isPrefix _ [] = False
+isPrefix (y:ys) (z:zs)  | y == z = isPrefix ys zs
+                        | otherwise = False
+
 --- end lil functions ---
 
 -- word array
 
-splitListOnSubstring :: String -> [String] -> [String]
-splitListOnSubstring _ [] = []
-splitListOnSubstring subStr (x:xs)
+splitByString :: String -> [String] -> [String]
+splitByString _ [] = []
+splitByString subStr (x:xs)
     | isInfixOf subStr x =
         let (before, after) = breakSubstring subStr x
             rest = drop (length subStr) after
         in before : if null rest then filteredResult else rest : filteredResult
     | otherwise = x : filteredResult
   where
-    filteredResult = filter (not . null) (splitListOnSubstring subStr xs)
+    filteredResult = filter (not . null) (splitByString subStr xs)
 
 breakSubstring :: String -> String -> (String, String)
 breakSubstring _ [] = ("", "")
@@ -83,6 +99,9 @@ getUntilSection :: [String] -> [String]
 getUntilSection postHead =
     fillUntilFound (subGetuntilSec postHead) (getByChar postHead '#')
 
+getSectionPart :: [String] -> [String]
+getSectionPart file = skipUntilFound file (getByChar file '#')
+
 --- COREEE ---
 
 headerPart :: [String] -> [String]
@@ -92,16 +111,25 @@ headerPart file =
         else
             parseHeaderMd (getHeaderPart file) (noSection file)
 
+postSectionPart :: [String] -> [String]
+postSectionPart file =
+        if isInTab file '#' then
+            parserSectionMd (getSectionPart file)
+        else
+            []
+
 toTab :: [String] -> [String]
-toTab file = finalOutput (headerPart file) file
+toTab file = finalOutput file (headerPart file) (postSectionPart file)
 
 parseMDtoJSON :: [String] -> [String]
 parseMDtoJSON [] = []
 parseMDtoJSON ("---" : rest) = toTab rest
 parseMDtoJSON _ = []
 
-finalOutput :: [String] -> [String] -> [String]
-finalOutput beforeSection postSection = beforeSection
+finalOutput ::[String] -> [String] -> [String] -> [String]
+finalOutput file beforeSection posteContentSection = beforeSection ++
+    sectionBegin file ++ posteContentSection
+
 
 --- HeaderPart ---
 
@@ -150,8 +178,8 @@ headerWithText title Nothing Nothing bodyValue =
             [ Just "  \"header\": {"
             , fmap (\v -> "    \"title\": \"" ++ v ++ "\"") title
             ]
-    in ["{"] ++ headerLines ++ ["  }"]  ++
-    bodyUntilSection (splitListOnSubstring "." bodyValue)
+    in ["{"] ++ headerLines ++ ["  },"]  ++
+    bodyUntilSection (splitByString "." bodyValue)
 
 headerWithText title author Nothing bodyValue =
     let headerLines = catMaybes
@@ -159,8 +187,8 @@ headerWithText title author Nothing bodyValue =
             , fmap (\v -> "    \"title\": \"" ++ v ++ "\",") title
             , fmap (\v -> "    \"author\": \"" ++ v ++ "\"") author
             ]
-    in ["{"] ++ headerLines ++ ["  }"]  ++
-    bodyUntilSection (splitListOnSubstring "." bodyValue)
+    in ["{"] ++ headerLines ++ ["  },"]  ++
+    bodyUntilSection (splitByString "." bodyValue)
 
 headerWithText title author date bodyValue =
     let headerLines = catMaybes
@@ -169,14 +197,14 @@ headerWithText title author date bodyValue =
             , fmap (\v -> "    \"author\": \"" ++ v ++ "\",") author
             , fmap (\v -> "    \"date\": \"" ++ v ++ "\"") date
             ]
-    in ["{"] ++ headerLines ++ ["  }"]  ++
-    bodyUntilSection (splitListOnSubstring "." bodyValue)
+    in ["{"] ++ headerLines ++ ["  },"]  ++
+    bodyUntilSection (splitByString "." bodyValue)
 
 
 --- End Header Part ---
 
 
---- Body Part ---
+--- Before Section ---
 
 noBodyFormat :: [String]
 noBodyFormat = ["  \"body\": []\n}"]
@@ -192,5 +220,39 @@ formatElement :: String -> String
 formatElement "" = ""
 formatElement str = "      [\n\t  \"" ++ str ++ ".\"\n      ],"
 
+sectionBegin :: [String] -> [String]
+sectionBegin [] = []
+sectionBegin file = ["      {\n\t  \"section\": {"] ++
+    ["\t      \"title\": \"" ++
+    getLineWithout (getLineWithout (getByChar file '#') '#') ' ' ++ "\","]
 
--- END HEADER PART --
+-- End before Section --
+
+--- Section Part ---
+
+paragraphFormat :: String -> [String]
+
+paragraphFormat line = ["\t\t[\n\t\t    \"" ++ line ++ ".\"\n\t\t],"]
+
+txtfrmt :: [String] -> [String]
+txtfrmt [] = []
+txtfrmt ("": xs) = txtfrmt xs
+txtfrmt (x : xs) | isInString x "This is a paragraph" == True =
+    paragraphFormat x ++ txtfrmt xs
+                    | otherwise = subTextFormat x : txtfrmt xs
+
+-- subTextFormat x : map (\str -> "\t\t[\n\t\t    \"" ++ str ++ ".\"\n\t\t],") xs
+subTextFormat :: String -> String
+subTextFormat str = "\t\t[\n\t\t    \"" ++ str ++ ".\"\n\t\t],\n]\n}\n}\n]\n}"
+
+sectionTextFormat :: [String] -> [String]
+sectionTextFormat file =
+    if isInTab file '#' then
+        txtfrmt (splitByString "." (fillUntilFound file (getByChar file '#')))
+    else
+        skipUntilFound file (getByChar file '\n')
+
+parserSectionMd :: [String] -> [String]
+parserSectionMd [] = []
+parserSectionMd section = ["\t      \"content\": ["] ++
+    sectionTextFormat section
