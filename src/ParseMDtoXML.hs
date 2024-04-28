@@ -7,6 +7,47 @@
 
 module ParseMDtoXML (parseMDtoXML) where
 
--- parseMDtoXML --
+import Data.List (isPrefixOf, intercalate)
+import Data.Char (isAlpha)
+import Data.Maybe (fromMaybe)
+
+clearString :: String -> String
+clearString [] = []
+clearString (':':xs) = clearString xs
+clearString ('=':xs) = clearString xs
+clearString (' ':xs) = clearString xs
+clearString ('#':xs) = clearString xs
+clearString str = str
+
+parseString :: String -> String -> Maybe String
+parseString [] str = Just (clearString str)
+parseString _ [] = Nothing
+parseString substr str
+    | substr `isPrefixOf` str = Just (clearString (drop (length substr) str))
+    | otherwise = Nothing
+
+writeHeader :: Int -> [String] -> [String]
+writeHeader 0 xs = parseHeader 1 xs
+writeHeader 1 xs = ("    </header>" ++ "\n    <body>") : parseHeader 0 xs
+writeHeader _ xs = xs
+
+parseHeader :: Int -> [String] -> [String]
+parseHeader _ [] = []
+parseHeader count (x:xs)
+    | null x = parseHeader count xs
+    | "---" `isPrefixOf` x = writeHeader count xs
+    | "title:" `isPrefixOf` x = ("    <header title=\"" ++ fromMaybe "" 
+        (parseString "title:" x) ++ "\">") : parseHeader count xs
+    | "author:" `isPrefixOf` x = ("        <author>" ++ fromMaybe ""
+        (parseString "author:" x) ++ "</author>") : parseHeader count xs
+    | "date:" `isPrefixOf` x = ("        <date>" ++ fromMaybe
+        "" (parseString "date:" x) ++ "</date>") : parseHeader count xs
+    | otherwise = parseBody count (x:xs)
+
+parseDocument :: [String] -> [String]
+parseDocument [] = []
+parseDocument (x:xs) 
+    | "---" `isPrefixOf` x = parseHeader 0 (x:xs)
+
 parseMDtoXML :: [String] -> [String]
-parseMDtoXML file = file
+parseMDtoXML file = "<document>" : parseDocument file ++ ["    </body>"] ++ ["</document>"]
