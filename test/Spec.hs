@@ -5,14 +5,17 @@
 -- mypandoc test proj
 --}
 
-import Test.HUnit (Test (TestList, TestCase), assertEqual, runTestTT)
+import Test.HUnit (Test (TestList, TestCase), assertEqual, runTestTT, Assertable (assert))
 import ParseJSONtoMD (cleanString,
     isNeedClear,
     getTitle,
     getAuthor,
     getDate,
-    parseJsonHeaderToMDHeader
-    )
+    parseJsonHeaderToMDHeader,
+    parseCodeBlock,
+    takeOffCodeBlock,
+    getFirstIndex,
+    getLink)
 
 unitsTests :: Test
 
@@ -22,7 +25,12 @@ unitsTests = TestList [
     testgetTitle,
     testgetDate,
     testgetAuthor,
-    testJsonHeader
+    testJsonHeader,
+    testParseCodeBlock,
+    testtakeOffCodeBlock,
+    testgetFirstIndex,
+    testgetLink,
+    testgetLinkIMG
     ]
 
 testCleanStr :: Test
@@ -58,6 +66,31 @@ testJsonHeader :: Test
 testJsonHeader = TestCase $ do
     let res = parseJsonHeaderToMDHeader ["\"title\": \"Syntaxe JSON\",", "\"author\": \"Edward Lalande\",","\"date\": \"17-10-2023\""]
     assertEqual "parseJsonHeaderToMDHeader is not good" ["title: Syntaxe JSON", "author: Edward Lalande", "date: 17-10-2023", "---"] res
+
+testParseCodeBlock :: Test
+testParseCodeBlock = TestCase $ do
+    let res = parseCodeBlock ["[", "\"test\"","],", "[", "\"test2\"","]"] []
+    assertEqual "parseCodeBlock failed" ["```", "test", "test2", "```", ""] res
+
+testtakeOffCodeBlock :: Test
+testtakeOffCodeBlock = TestCase $ do
+    let res = takeOffCodeBlock ["[", "]", "[", "]", "[", "],", "a oui oui"]
+    assertEqual "takeoffCodeBlock failed" ["a oui oui"] res
+
+testgetFirstIndex :: Test
+testgetFirstIndex = TestCase $ do
+    let res = getFirstIndex ["le monde est méchant", "c terrible"]
+    assertEqual "getFirstIndex failed" "le monde est méchant" res
+
+testgetLink :: Test
+testgetLink = TestCase $ do
+    let res = getLink ["\"url\": \"test.com\",", "\"content\": [", "\"oui\""] "" "" False
+    assertEqual "getLink failed" "[oui](test.com)" res
+
+testgetLinkIMG :: Test
+testgetLinkIMG = TestCase $ do
+    let res = getLink ["\"url\": \"test.com\",", "\"alt\": [", "\"oui\""] "" "" True
+    assertEqual "getLink failed" "![oui](test.com)" res
 
 main :: IO ()
 main = do
