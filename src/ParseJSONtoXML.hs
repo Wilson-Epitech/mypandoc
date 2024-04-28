@@ -7,7 +7,7 @@
 
 module ParseJSONtoXML (parseJSONtoXML) where
 
-import Parser (parseString)
+import Parser (parseString, revList)
 
 cleanString :: String -> String
 cleanString [] = []
@@ -48,11 +48,11 @@ parseJsonHeaderToXMLHeader [] = ["</header>"]
 
 --parseCodeBlock--
 parseCodeBlock :: [String] -> [String] -> [String]
-parseCodeBlock ("]":_) tmp = mappend tmp ["</codeblock>", ""]
+parseCodeBlock ("]":_) tmp = "<codeblock>":mappend (revList tmp) ["</codeblock>", ""]
 parseCodeBlock ("],":xs) tmp = parseCodeBlock xs tmp
 parseCodeBlock ("[":x:xs) [] = 
     parseCodeBlock xs 
-    ("<codeblock>":["<paragraph>" ++ cleanString x ++ "</paragraph>"])
+    ["<paragraph>" ++ cleanString x ++ "</paragraph>"]
 parseCodeBlock ("[":x:xs) tmp =
     parseCodeBlock xs 
     (("<paragraph>" ++ cleanString x ++ "</paragraph>"):tmp)

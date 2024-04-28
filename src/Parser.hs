@@ -19,6 +19,7 @@ module Parser (parseChar,
     clearTab,
     parseString,
     parserString,
+    revList,
     Parser) where
 
 import Control.Applicative (Alternative (empty), (<|>))
@@ -26,6 +27,10 @@ import Control.Applicative (Alternative (empty), (<|>))
 newtype Parser a = Parser {
     runParser :: String -> Either String (a, String)
 }
+
+revList :: [String] -> [String]
+revList [] = []
+revList (x:xs) = revList xs ++ [x]
 
 instance Functor Parser where
     fmap fct parser = Parser $ \str ->

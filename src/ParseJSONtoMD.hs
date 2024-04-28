@@ -12,8 +12,11 @@ module ParseJSONtoMD (parseJSONtoMD,
     getAuthor,
     getDate,
     parseJsonHeaderToMDHeader,
-    parseCodeBlock) where
-import Parser (parseString)
+    parseCodeBlock,
+    takeOffCodeBlock,
+    getFirstIndex,
+    getLink) where
+import Parser (parseString, revList)
 
 cleanString :: String -> String
 cleanString [] = []
@@ -53,10 +56,10 @@ parseJsonHeaderToMDHeader [] = ["---"]
 
 --parseCodeBlock--
 parseCodeBlock :: [String] -> [String] -> [String]
-parseCodeBlock ("]":_) tmp = mappend tmp ["```", ""]
+parseCodeBlock ("]":_) tmp = "```":mappend (revList tmp) ["```", ""]
 parseCodeBlock ("],":xs) tmp = parseCodeBlock xs tmp 
-parseCodeBlock ("[":x:xs) [] = parseCodeBlock xs ("```":[tail x])
-parseCodeBlock ("[":x:xs) tmp = parseCodeBlock xs (tail x:tmp)
+parseCodeBlock ("[":x:xs) [] = parseCodeBlock xs [cleanString x]
+parseCodeBlock ("[":x:xs) tmp = parseCodeBlock xs (cleanString x:tmp)
 parseCodeBlock _  _ = ["```"]
 
 
@@ -67,9 +70,9 @@ takeOffCodeBlock ("],":xs) = takeOffCodeBlock xs
 takeOffCodeBlock ("[":_:xs) = takeOffCodeBlock xs
 takeOffCodeBlock tmp = tmp
 
-getNewIndex :: [String] -> String
-getNewIndex [] = ""
-getNewIndex (x:_) = x
+getFirstIndex :: [String] -> String
+getFirstIndex [] = ""
+getFirstIndex (x:_) = x
 
 --getLink--
 getLink :: [String] -> String -> String -> Bool -> String
@@ -84,9 +87,9 @@ getLink (x:xs) url content b = if url /= "" && content /= ""
     else case parseString "\"url\": " x of
     Just res -> getLink xs (init res) content b
     Nothing -> case parseString "\"content\": [" x of
-        Just _ -> getLink xs url (getNewIndex xs) b
+        Just _ -> getLink xs url (getFirstIndex xs) b
         Nothing -> case parseString "\"alt\": [" x of
-            Just _ -> getLink xs url (getNewIndex xs) b
+            Just _ -> getLink xs url (getFirstIndex xs) b
             Nothing -> getLink xs url content b
 
 --goToNextScope--
