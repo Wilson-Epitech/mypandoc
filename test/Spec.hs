@@ -7,53 +7,56 @@
 
 import Test.HUnit (Test (TestList, TestCase), assertEqual, runTestTT)
 import MyPandoc
+import ParseJSONtoMD (cleanString, isNeedClear, getTitle, getAuthor, getDate,
+    parseJsonHeaderToMDHeader)
 
 unitsTests :: Test
 
 unitsTests = TestList [
-    unitsTestsParseChar,
-    unitsTestsParseCharNothing,
-    unitsTestsParseAnyChar,
-    unitsTestsParseAnyCharNothing,
-    unitsTestsParseOrFirst,
-    unitsTestsParseOrSecond,
-    unitsTestsParseOrFail
+    testCleanStr,
+    testisNeedClear,
+    testgetTitle,
+    testgetDate,
+    testgetAuthor
     ]
 
-unitsTestsParseChar :: Test
-unitsTestsParseChar = TestCase $ do
-    let result = parseChar 'a' "abcd"
-    assertEqual "parseChar result should be Just ('a', \"bcd\")" (Just ('a', "bcd")) result
+testCleanStr :: Test
+testCleanStr = TestCase $ do
+    let res = cleanString "\"hello\""
+    let resNormal = cleanString "hello"
+    assertEqual "cleanString should be (hello)" "hello" res
+    assertEqual "cleanString should be (hello)" "hello" resNormal
 
-unitsTestsParseCharNothing :: Test
-unitsTestsParseCharNothing = TestCase $ do
-    let result = parseChar 'e' "abcd"
-    assertEqual "parseChar result should be Nothing" Nothing result
+testisNeedClear :: Test
+testisNeedClear = TestCase $ do
+    let res = isNeedClear "hello"
+    let resNormal = isNeedClear "hello\""
+    assertEqual "isNeedClear should be False" False res
+    assertEqual "isNeedClear should be True" True resNormal
 
-unitsTestsParseAnyCharNothing :: Test
-unitsTestsParseAnyChar = TestCase $ do
-    let result = parseAnyChar "abc" "def"
-    assertEqual "parseAnyChar result should be Nothing" Nothing result
+testgetTitle :: Test
+testgetTitle = TestCase $ do
+    let res = getTitle "\"el titelo\","
+    assertEqual "getTitle should be title: el titelo" "title: el titelo" res
 
-unitsTestsParseAnyChar :: Test
-unitsTestsParseAnyCharNothing = TestCase $ do
-    let result = parseAnyChar "abc" "bdef"
-    assertEqual "parseAnyChar result should be Just ('b', \"def\")" (Just ('b', "def")) result
+testgetAuthor :: Test
+testgetAuthor = TestCase $ do
+    let res = getAuthor "\"el Author\","
+    assertEqual "getAuthor should be author: el Author" "author: el Author" res
 
-unitsTestsParseOrFirst :: Test
-unitsTestsParseOrFirst = TestCase $ do
-    let result = parseOr (parseChar 'a') (parseChar 'b') "abcd"
-    assertEqual "parseOr result should be Just ('a', \"bcd\")" (Just ('a', "bcd")) result
+testgetDate :: Test
+testgetDate = TestCase $ do
+    let res = getDate "\"17-10-2003\""
+    assertEqual "getDate should be date: 17-10-2003" "date: 17-10-2003" res
 
-unitsTestsParseOrSecond :: Test
-unitsTestsParseOrSecond = TestCase $ do
-    let result = parseOr (parseChar 'a') (parseChar 'b') "bcda"
-    assertEqual "parseOr result should be Just ('b', \"cda\")" (Just ('b', "cda")) result
+testJsonHeader :: Test
+testJsonHeader = TestCase $ do
+    let res = parseJsonHeaderToMDHeader ["\"title\": \"Syntaxe JSON\"", "\"author\": \"Edward Lalande\"","\"date\": \"17-10-2023\""]
+    assertEqual "parseJsonHeaderToMDHeader is not good" ["---", "title: Syntaxe JSON", "author: Edward Lalande", "date: 17-10-2023"] res
 
-unitsTestsParseOrFail :: Test
-unitsTestsParseOrFail = TestCase $ do
-    let result = parseOr (parseChar 'a') (parseChar 'b') "xyz"
-    assertEqual "parseOr result should be Nothing" Nothing result
+testparseCodeBlock :: Test
+testparseCodeBlock = TestCase $ do
+    let res = parseCodeBlock
 
 main :: IO ()
 main = do
