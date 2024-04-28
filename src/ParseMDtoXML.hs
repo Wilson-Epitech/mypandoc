@@ -109,5 +109,12 @@ parseDocument (x:xs)
     | "---" `isPrefixOf` x = parseHeader 0 (x:xs)
     | otherwise = parseBody 0 (x:xs)
 
+countSection :: [String] -> Int
+countSection = length . filter (\line -> "#" `isPrefixOf` line)
+
 parseMDtoXML :: [String] -> [String]
-parseMDtoXML file = "<document>" : parseDocument file ++ ["    </body>"] ++ ["</document>"]
+parseMDtoXML file = "<document>" : parseDocument file
+    ++ closeSections ++ ["    </body>"] ++ ["</document>"]
+    where
+        nbSection = countSection file
+        closeSections = replicate nbSection "</section>"
