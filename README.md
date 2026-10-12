@@ -14,7 +14,7 @@
 
 <p align="center"><img src=".github/assets/term-mypandoc.png" alt="MyPandoc" width="820"/></p>
 
-## En deux mots
+## Le projet en quelques mots
 
 Une version simplifiée de *pandoc* : on lit un document en Markdown, XML ou JSON, et on le réécrit dans un autre format. Sans Parsec, le parsing repose sur nos propres combinateurs.
 
@@ -24,10 +24,6 @@ Une version simplifiée de *pandoc* : on lit un document en Markdown, XML ou JSO
 - Représentation commune : en-tête, sections, paragraphes, listes, gras, italique, code
 - Conversions Markdown → XML et Markdown → JSON
 - Choix du format de sortie (`-f`) et du fichier de sortie (`-o`)
-
-## Sous le capot
-
-Chaque format a son parseur, qui produit le même arbre de document, puis un « printer » par format de sortie. Les parseurs sont composés à partir de petites briques (`char`, `many`, `<|>`…) définies dans `Parser.hs`.
 
 ## Lancer le projet
 
@@ -43,4 +39,4 @@ make
 
 Edward Lalande, Timothée Plisson, Paul Bardeur, Wilson Bordichon
 
-**Ma part :** J'ai écrit la conversion **Markdown → XML** : en-tête, sections, paragraphes, gras, italique, code, blocs de code et listes.
+**Ma partition :** J'ai écrit la conversion **Markdown → XML** : en-tête, sections, paragraphes, gras, italique, code, blocs de code et listes.
